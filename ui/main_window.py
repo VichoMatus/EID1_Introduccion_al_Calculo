@@ -119,8 +119,20 @@ class MainWindow(ctk.CTk):
             self.orientacion_label.configure(text="")
             self.general_label.configure(text="")
 
+    def mostrar_grafico(self, fig):
+        # Limpia el frame y cierra figuras previas para liberar recursos
+        for widget in self.grafico_frame.winfo_children():
+            widget.destroy()
+        plt.close('all')  # Asegura cerrar figuras anteriores
+        
+        canvas = FigureCanvasTkAgg(fig, master=self.grafico_frame)
+        canvas.draw()
+        canvas.get_tk_widget().pack(fill="both", expand=True)
+
     def graficar(self):
-        graficar_elipse_2d(self.h, self.k, self.a, self.b)
+        fig, ax = graficar_elipse_2d(self.h, self.k, self.a, self.b)
+        self.mostrar_grafico(fig)
 
     def graficar_3d(self):
-        graficar_elipse_3d(self.h, self.k, self.a, self.b)
+        fig, ax = graficar_elipse_3d(self.h, self.k, self.a, self.b)
+        self.mostrar_grafico(fig)
