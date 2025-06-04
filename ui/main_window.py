@@ -2,10 +2,10 @@ import customtkinter as ctk
 import numpy as np
 from logic.calculos import separar_rut, funcion_caso1, funcion_caso2
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from PIL import Image, ImageTk
 import io
 import matplotlib.pyplot as plt
 from graficos.graficador import graficar_elipse_2d, graficar_elipse_3d
+from logic.render_formulas import render_formula, render_formula_general
 
 class MainWindow(ctk.CTk):
     def __init__(self):
@@ -60,20 +60,6 @@ class MainWindow(ctk.CTk):
         self.rut_separado = []
         self.formula_photo = None
 
-    def render_formula(self, X='x', Y='y', H='h', K='k', A='a', B='b'):
-        plt.clf()
-        fig = plt.figure(figsize=(6, 2), dpi=100)
-        plt.axis('off')
-
-        formula = rf"\frac{{({X} - {H})^2}}{{{A}^2}} + \frac{{({Y} - {K})^2}}{{{B}^2}} = 1"
-        plt.text(0.5, 0.5, f"${formula}$", fontsize=20, ha='center', va='center')
-
-        buf = io.BytesIO()
-        plt.savefig(buf, format='png', bbox_inches='tight', transparent=True)
-        buf.seek(0)
-        plt.close(fig)
-        img = Image.open(buf)
-        return ImageTk.PhotoImage(img)
 
     def guardar_rut(self):
         rut = self.rut_entry.get()
@@ -84,7 +70,7 @@ class MainWindow(ctk.CTk):
             self.rut_valor_label.configure(text="")
             self.formula_label.configure(image=None)
             self.orientacion_label.configure(text="")
-            self.general_label.configure(text="")
+            self.general_label.configure(image=None, text="")
             return
 
         ultimo_digito = self.rut_separado[-1]
@@ -101,23 +87,30 @@ class MainWindow(ctk.CTk):
             self.a = resultado["a"]
             self.b = resultado["b"]
             orientacion = resultado["orientacion"]
-            formula_general = resultado["general"]
+            formula_general = resultado["latex_general"]
 
             self.rut_label_formula.configure(text="Ecuación Canónica con RUT:")
             self.rut_valor_label.configure(text=rut)
 
-            self.formula_photo = self.render_formula(X='x', Y='y', H=self.h, K=self.k, A=str(self.a), B=str(self.b))
+            self.formula_photo = render_formula(
+                X='x', Y='y', H=self.h, K=self.k, A=str(self.a), B=str(self.b)
+            )
             self.formula_label.configure(image=self.formula_photo)
 
             self.orientacion_label.configure(text=f"Orientación:\n {orientacion}")
-            self.general_label.configure(text=f"Ecuación general:\n {formula_general}") 
+
+            # Renderizar fórmula general en LaTeX como imagen
+            self.general_photo = render_formula_general(formula_general)
+            self.general_label.configure(image=self.general_photo, text="")
+
 
         else:
             self.rut_label_formula.configure(text="")
             self.rut_valor_label.configure(text="")
             self.formula_label.configure(image=None)
             self.orientacion_label.configure(text="")
-            self.general_label.configure(text="")
+            self.general_label.configure(image=None, text="")
+
 
     def mostrar_grafico(self, fig):
         # Limpia el frame y cierra figuras previas para liberar recursos
