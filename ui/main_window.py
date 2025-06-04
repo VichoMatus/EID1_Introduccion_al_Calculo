@@ -1,8 +1,6 @@
 import customtkinter as ctk
-import numpy as np
 from logic.calculos import separar_rut, funcion_caso1, funcion_caso2
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import io
 import matplotlib.pyplot as plt
 from graficos.graficador import graficar_elipse_2d, graficar_elipse_3d
 from logic.render_formulas import render_formula, render_formula_general
@@ -21,33 +19,23 @@ class MainWindow(ctk.CTk):
         self.tabview.add("Datos y Formula")
         self.tabview.add("Gráficos")
 
-        self.rut_label = ctk.CTkLabel(self.tabview.tab("Datos y Formula"), text="Ingrese RUT (con puntos y guion):")
-        self.rut_label.pack(pady=10)
+        # Contenedor principal para 2 columnas
+        self.main_formula_frame = ctk.CTkFrame(self.tabview.tab("Datos y Formula"))
+        self.main_formula_frame.pack(pady=10, fill="both", expand=True)
 
-        self.rut_entry = ctk.CTkEntry(self.tabview.tab("Datos y Formula"))
-        self.rut_entry.pack(pady=10)
+        # Frame izquierdo
+        self.formula_frame_izq = ctk.CTkFrame(self.main_formula_frame)
+        self.formula_frame_izq.pack(side="left", fill="both", expand=True, padx=10)
 
-        self.guardar_btn = ctk.CTkButton(self.tabview.tab("Datos y Formula"), text="Guardar RUT", command=self.guardar_rut)
-        self.guardar_btn.pack(pady=10)
+        self._crear_formulario(self.formula_frame_izq, lado="izq")
 
-        self.formula_frame = ctk.CTkFrame(self.tabview.tab("Datos y Formula"), height=300)
-        self.formula_frame.pack(pady=10, fill="both", expand=False)
+        # Frame derecho
+        self.formula_frame_der = ctk.CTkFrame(self.main_formula_frame)
+        self.formula_frame_der.pack(side="right", fill="both", expand=True, padx=10)
 
-        self.rut_label_formula = ctk.CTkLabel(self.formula_frame, text="", font=ctk.CTkFont(size=16, weight="bold"))
-        self.rut_label_formula.pack(pady=(0,5), anchor="center")
+        self._crear_formulario(self.formula_frame_der, lado="der")
 
-        self.rut_valor_label = ctk.CTkLabel(self.formula_frame, text="", font=ctk.CTkFont(size=14))
-        self.rut_valor_label.pack(pady=(5,10), anchor="center")
-
-        self.formula_label = ctk.CTkLabel(self.formula_frame, text="")
-        self.formula_label.pack(anchor="center")
-
-        self.orientacion_label = ctk.CTkLabel(self.formula_frame, text="", font=ctk.CTkFont(size=16, weight="bold"), text_color="black")
-        self.orientacion_label.pack(pady= (10,10), anchor="center")
-
-        self.general_label = ctk.CTkLabel(self.formula_frame, text="", font=ctk.CTkFont(size=14, weight="bold"), text_color="black", wraplength=500, justify="center")
-        self.general_label.pack(pady=(20,10), anchor="center")
-
+        # Gráficos
         self.grafico_2d_btn = ctk.CTkButton(self.tabview.tab("Gráficos"), text="Ver gráfico en 2D", command=self.graficar)
         self.grafico_2d_btn.pack(pady=10)
 
@@ -57,67 +45,110 @@ class MainWindow(ctk.CTk):
         self.grafico_frame = ctk.CTkFrame(self.tabview.tab("Gráficos"))
         self.grafico_frame.pack(pady=10, padx=10, fill="both", expand=True)
 
-        self.rut_separado = []
-        self.formula_photo = None
+        self.h = self.k = self.a = self.b = 0
+
+    def _crear_formulario(self, parent, lado):
+        setattr(self, f"rut_entry_{lado}", ctk.CTkEntry(parent))
+        getattr(self, f"rut_entry_{lado}").pack(pady=5)
+
+        btn = ctk.CTkButton(parent, text="Guardar RUT", command=lambda l=lado: self._procesar_rut(l))
+        btn.pack(pady=5)
+
+        setattr(self, f"titulo_label_{lado}", ctk.CTkLabel(parent, text="", font=ctk.CTkFont(size=16, weight="bold")))
+        getattr(self, f"titulo_label_{lado}").pack()
+
+        setattr(self, f"valor_label_{lado}", ctk.CTkLabel(parent, text=""))
+        getattr(self, f"valor_label_{lado}").pack()
+
+        setattr(self, f"orientacion_label_{lado}", ctk.CTkLabel(parent, text="", font=ctk.CTkFont(size=14, weight="bold")))
+        getattr(self, f"orientacion_label_{lado}").pack(pady=5)
+
+        # Título para ecuación canónica
+        setattr(self, f"canonica_titulo_{lado}", ctk.CTkLabel(parent, text="", font=ctk.CTkFont(size=14, weight="bold")))
+        getattr(self, f"canonica_titulo_{lado}").pack()
+
+        setattr(self, f"formula_label_{lado}", ctk.CTkLabel(parent, text=""))
+        getattr(self, f"formula_label_{lado}").pack()
+
+        # Título para ecuación general
+        setattr(self, f"general_titulo_{lado}", ctk.CTkLabel(parent, text="", font=ctk.CTkFont(size=14, weight="bold")))
+        getattr(self, f"general_titulo_{lado}").pack(pady=(10, 0))
+
+        setattr(self, f"general_label_{lado}", ctk.CTkLabel(parent, text="", wraplength=400, justify="center"))
+        getattr(self, f"general_label_{lado}").pack()
+
+        setattr(self, f"valores_titulo_{lado}", ctk.CTkLabel(parent, text="", font=ctk.CTkFont(size=14, weight="bold")))
+        getattr(self, f"valores_titulo_{lado}").pack()
+
+        setattr(self, f"debug_label_{lado}", ctk.CTkLabel(parent, text="", font=ctk.CTkFont(size=12), justify="left"))
+        getattr(self, f"debug_label_{lado}").pack(pady=10)
 
 
-    def guardar_rut(self):
-        rut = self.rut_entry.get()
-        self.rut_separado = separar_rut(rut)
+    def _procesar_rut(self, lado):
+        rut_entry = getattr(self, f"rut_entry_{lado}")
+        rut = rut_entry.get()
+        rut_separado = separar_rut(rut)
 
-        if len(self.rut_separado) < 8:
-            self.rut_label_formula.configure(text="")
-            self.rut_valor_label.configure(text="")
-            self.formula_label.configure(image=None)
-            self.orientacion_label.configure(text="")
-            self.general_label.configure(image=None, text="")
+        if len(rut_separado) < 8:
+            for nombre in [
+                "titulo", "valor", "formula", "orientacion", "general",
+                "debug", "canonica_titulo", "general_titulo", "valores_titulo"
+            ]:
+                label = getattr(self, f"{nombre}_label_{lado}", None) or getattr(self, f"{nombre}_{lado}", None)
+                if label:
+                    label.configure(text="", image=None)
             return
 
-        ultimo_digito = self.rut_separado[-1]
-        if ultimo_digito.isdigit():
-            ultimo_num = int(ultimo_digito)
-
-            if ultimo_num == 0 or ultimo_num % 2 == 0:
-                resultado = funcion_caso2(self.rut_separado)
-            else:
-                resultado = funcion_caso1(self.rut_separado)
-
-            self.h = resultado["h"]
-            self.k = resultado["k"]
-            self.a = resultado["a"]
-            self.b = resultado["b"]
+        ultimo = rut_separado[-1]
+        if ultimo.isdigit():
+            resultado = funcion_caso2(rut_separado) if int(ultimo) % 2 == 0 else funcion_caso1(rut_separado)
+            h, k, a, b = resultado["h"], resultado["k"], resultado["a"], resultado["b"]
             orientacion = resultado["orientacion"]
-            formula_general = resultado["latex_general"]
+            canonica = render_formula(H=h, K=k, A=a, B=b)
+            general = render_formula_general(resultado["latex_general"])
 
-            self.rut_label_formula.configure(text="Ecuación Canónica con RUT:")
-            self.rut_valor_label.configure(text=rut)
+            self.h, self.k, self.a, self.b = h, k, a, b  # Para graficar
 
-            self.formula_photo = render_formula(
-                X='x', Y='y', H=self.h, K=self.k, A=str(self.a), B=str(self.b)
+            getattr(self, f"titulo_label_{lado}").configure(text="Ecuación Canónica con RUT:")
+            getattr(self, f"valor_label_{lado}").configure(text=rut)
+            getattr(self, f"orientacion_label_{lado}").configure(text=f"Orientación:\n{orientacion}")
+
+            getattr(self, f"canonica_titulo_{lado}").configure(text="Ecuación Canónica:")
+            getattr(self, f"formula_label_{lado}").configure(image=canonica)
+
+            getattr(self, f"general_titulo_{lado}").configure(text="Ecuación General:")
+            getattr(self, f"general_label_{lado}").configure(image=general, text="")
+
+            setattr(self, f"foto_canonica_{lado}", canonica)
+            setattr(self, f"foto_general_{lado}", general)
+
+            # Mostrar explicación de valores h, k, a, b
+            getattr(self, f"valores_titulo_{lado}").configure(text="Valores Ecuación Canónica:")
+
+            explicacion = (
+                f"h = d1 = {rut_separado[0]}\n"
+                f"k = d2 = {rut_separado[1]}\n"
             )
-            self.formula_label.configure(image=self.formula_photo)
 
-            self.orientacion_label.configure(text=f"Orientación:\n {orientacion}")
+            if int(ultimo) % 2 == 0:
+                # Caso 2
+                explicacion += (
+                    f"a = d6 + d7 = {rut_separado[5]} + {rut_separado[6]} = {a}\n"
+                    f"b = d8 + d3 = {rut_separado[7]} + {rut_separado[2]} = {b}"
+                )
+            else:
+                # Caso 1
+                explicacion += (
+                    f"a = d3 + d4 = {rut_separado[2]} + {rut_separado[3]} = {a}\n"
+                    f"b = d5 + d6 = {rut_separado[4]} + {rut_separado[5]} = {b}"
+                )
 
-            # Renderizar fórmula general en LaTeX como imagen
-            self.general_photo = render_formula_general(formula_general)
-            self.general_label.configure(image=self.general_photo, text="")
-
-
-        else:
-            self.rut_label_formula.configure(text="")
-            self.rut_valor_label.configure(text="")
-            self.formula_label.configure(image=None)
-            self.orientacion_label.configure(text="")
-            self.general_label.configure(image=None, text="")
-
+            getattr(self, f"debug_label_{lado}").configure(text=explicacion)
 
     def mostrar_grafico(self, fig):
-        # Limpia el frame y cierra figuras previas para liberar recursos
         for widget in self.grafico_frame.winfo_children():
             widget.destroy()
-        plt.close('all')  # Asegura cerrar figuras anteriores
-        
+        plt.close('all')
         canvas = FigureCanvasTkAgg(fig, master=self.grafico_frame)
         canvas.draw()
         canvas.get_tk_widget().pack(fill="both", expand=True)
