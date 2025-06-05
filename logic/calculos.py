@@ -1,15 +1,14 @@
 def separar_rut(rut: str):
     # Quitar puntos y guion, y separar dígitos numéricos
-    # Además, si termina en K o k, agregar '0' al final
     rut = rut.replace(".", "").replace("-", "")
     digitos = list(rut[:-1])  # Todos excepto el último carácter
     ultimo = rut[-1].upper()
-    
+
     if ultimo == "K":
         digitos.append('0')
     else:
         digitos.append(ultimo)
-    
+
     return digitos
 
 def funcion_caso1(digitos):
@@ -19,15 +18,34 @@ def funcion_caso1(digitos):
     b = int(digitos[4]) + int(digitos[5])
     orientacion = "horizontal" if int(digitos[7]) % 2 == 0 else "vertical"
 
-    A = 1 / (a ** 2)
-    B = 1 / (b ** 2)
+    if orientacion == "horizontal":
+        if a < b:
+            a, b = b, a
+        A = 1 / (a ** 2)
+        B = 1 / (b ** 2)
+        canonica = f"\\frac{{(x - {h})^2}}{{{a}^2}} + \\frac{{(y - {k})^2}}{{{b}^2}} = 1"
+    else:
+        if b < a:
+            a, b = b, a
+        A = 1 / (b ** 2)
+        B = 1 / (a ** 2)
+        canonica = f"\\frac{{(x - {h})^2}}{{{b}^2}} + \\frac{{(y - {k})^2}}{{{a}^2}} = 1"
+
     D = -2 * h * A
     E = -2 * k * B
     F = A * h ** 2 + B * k ** 2 - 1
 
+    latex_general = (
+        f"{A:.3f}x^2 {'+' if B >= 0 else '-'} {abs(B):.3f}y^2 "
+        f"{'+' if D >= 0 else '-'} {abs(D):.3f}x "
+        f"{'+' if E >= 0 else '-'} {abs(E):.3f}y "
+        f"{'+' if F >= 0 else '-'} {abs(F):.3f} = 0"
+    )
+
     return {
         "h": h, "k": k, "a": a, "b": b, "orientacion": orientacion,
-        "general": f"{A:.3f}x² + {B:.3f}y² + {D:.3f}x + {E:.3f}y + {F:.3f} = 0"
+        "canonica": canonica,
+        "latex_general": latex_general
     }
 
 def funcion_caso2(digitos):
@@ -37,13 +55,32 @@ def funcion_caso2(digitos):
     b = int(digitos[7]) + int(digitos[2])
     orientacion = "horizontal" if int(digitos[3]) % 2 == 0 else "vertical"
 
-    A = 1 / (a ** 2)
-    B = 1 / (b ** 2)
+    if orientacion == "horizontal":
+        if a < b:
+            a, b = b, a
+        A = 1 / (a ** 2)
+        B = 1 / (b ** 2)
+        canonica = f"\\frac{{(x - {h})^2}}{{{a}^2}} + \\frac{{(y - {k})^2}}{{{b}^2}} = 1"
+    else:
+        if b < a:
+            a, b = b, a
+        A = 1 / (b ** 2)
+        B = 1 / (a ** 2)
+        canonica = f"\\frac{{(x - {h})^2}}{{{b}^2}} + \\frac{{(y - {k})^2}}{{{a}^2}} = 1"
+
     D = -2 * h * A
     E = -2 * k * B
     F = A * h ** 2 + B * k ** 2 - 1
 
+    latex_general = (
+        f"{A:.3f}x^2 {'+' if B >= 0 else '-'} {abs(B):.3f}y^2 "
+        f"{'+' if D >= 0 else '-'} {abs(D):.3f}x "
+        f"{'+' if E >= 0 else '-'} {abs(E):.3f}y "
+        f"{'+' if F >= 0 else '-'} {abs(F):.3f} = 0"
+    )
+
     return {
         "h": h, "k": k, "a": a, "b": b, "orientacion": orientacion,
-        "general": f"{A:.3f}x² + {B:.3f}y² + {D:.3f}x + {E:.3f}y + {F:.3f} = 0"
+        "canonica": canonica,
+        "latex_general": latex_general
     }

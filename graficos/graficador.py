@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 
 def graficar_elipse_2d(h, k, a, b, titulo="Trayectoria del Dron"):
     theta = np.linspace(0, 2 * np.pi, 300)
@@ -16,13 +15,13 @@ def graficar_elipse_2d(h, k, a, b, titulo="Trayectoria del Dron"):
     ax.set_title(titulo)
     ax.legend()
     ax.grid(True)
-    plt.show()
+    return fig, ax
 
 def graficar_elipse_3d(h, k, a, b, titulo="Trayectoria 3D del Dron"):
     theta = np.linspace(0, 2 * np.pi, 300)
     x = h + a * np.cos(theta)
     y = k + b * np.sin(theta)
-    z = np.zeros_like(theta)  # Altura constante (plano XY)
+    z = np.zeros_like(theta)
 
     fig = plt.figure(figsize=(6, 6))
     ax = fig.add_subplot(111, projection='3d')
@@ -34,4 +33,4 @@ def graficar_elipse_3d(h, k, a, b, titulo="Trayectoria 3D del Dron"):
     ax.set_title(titulo)
     ax.legend()
     plt.tight_layout()
-    plt.show()
+    return fig, ax
