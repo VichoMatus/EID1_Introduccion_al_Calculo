@@ -1,4 +1,5 @@
 import customtkinter as ctk
+from tkinter import messagebox
 from logic.calculos import separar_rut, funcion_caso1, funcion_caso2
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
@@ -103,6 +104,11 @@ class MainWindow(ctk.CTk):
         if ultimo.isdigit():
             resultado = funcion_caso2(rut_separado) if int(ultimo) % 2 == 0 else funcion_caso1(rut_separado)
             h, k, a, b = resultado["h"], resultado["k"], resultado["a"], resultado["b"]
+
+            # Validación: si a y b son iguales, mostrar aviso y salir
+            if a == b:
+                return messagebox.showerror('Error', 'Los valores de a y b son iguales, lo que indica que no es una elipse válida. Por favor, ingrese un RUT diferente.')
+
             orientacion = resultado["orientacion"]
             canonica = render_formula(H=h, K=k, A=a, B=b)
             general = render_formula_general(resultado["latex_general"])
