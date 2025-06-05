@@ -1,14 +1,14 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def graficar_elipse_2d(h, k, a, b, titulo="Trayectoria del Dron"):
-    theta = np.linspace(0, 2 * np.pi, 300)
-    x = h + a * np.cos(theta)
-    y = k + b * np.sin(theta)
-
+def graficar_elipses_2d(lista_elipses, titulo="Trayectorias del Dron"):
     fig, ax = plt.subplots(figsize=(5, 5))
-    ax.plot(x, y, label="Elipse")
-    ax.plot(h, k, 'ro', label="Centro")
+    for i, (h, k, a, b) in enumerate(lista_elipses):
+        theta = np.linspace(0, 2 * np.pi, 300)
+        x = h + a * np.cos(theta)
+        y = k + b * np.sin(theta)
+        ax.plot(x, y, label=f"Elipse {i+1}")
+        ax.plot(h, k, 'ro')  # Centro
     ax.set_aspect('equal', adjustable='box')
     ax.set_xlabel("x")
     ax.set_ylabel("y")
@@ -17,16 +17,17 @@ def graficar_elipse_2d(h, k, a, b, titulo="Trayectoria del Dron"):
     ax.grid(True)
     return fig, ax
 
-def graficar_elipse_3d(h, k, a, b, titulo="Trayectoria 3D del Dron"):
-    theta = np.linspace(0, 2 * np.pi, 300)
-    x = h + a * np.cos(theta)
-    y = k + b * np.sin(theta)
-    z = np.zeros_like(theta)
 
+def graficar_elipses_3d(lista_elipses, titulo="Trayectorias 3D del Dron"):
     fig = plt.figure(figsize=(6, 6))
     ax = fig.add_subplot(111, projection='3d')
-    ax.plot(x, y, z, label="Elipse en plano XY")
-    ax.scatter([h], [k], [0], color='red', label="Centro")
+    for i, (h, k, a, b) in enumerate(lista_elipses):
+        theta = np.linspace(0, 2 * np.pi, 300)
+        x = h + a * np.cos(theta)
+        y = k + b * np.sin(theta)
+        z = np.zeros_like(theta)
+        ax.plot(x, y, z, label=f"Elipse {i+1}")
+        ax.scatter([h], [k], [0], color='red')
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
     ax.set_zlabel("Z")
