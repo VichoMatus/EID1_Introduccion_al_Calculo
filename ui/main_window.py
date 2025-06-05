@@ -3,7 +3,7 @@ from tkinter import messagebox
 from logic.calculos import separar_rut, funcion_caso1, funcion_caso2
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
-from graficos.graficador import graficar_elipse_2d, graficar_elipse_3d
+from graficos.graficador import graficar_elipses_2d, graficar_elipses_3d
 from logic.render_formulas import render_formula, render_formula_general
 
 class MainWindow(ctk.CTk):
@@ -33,6 +33,9 @@ class MainWindow(ctk.CTk):
         # Frame derecho
         self.formula_frame_der = ctk.CTkFrame(self.main_formula_frame)
         self.formula_frame_der.pack(side="right", fill="both", expand=True, padx=10)
+
+        self.parametros_izq = None
+        self.parametros_der = None
 
         self._crear_formulario(self.formula_frame_der, lado="der")
 
@@ -114,6 +117,11 @@ class MainWindow(ctk.CTk):
             general = render_formula_general(resultado["latex_general"])
 
             self.h, self.k, self.a, self.b = h, k, a, b  # Para graficar
+            if lado == "izq":
+                self.parametros_izq = (h, k, a, b)
+            else:
+                self.parametros_der = (h, k, a, b)
+
 
             getattr(self, f"titulo_label_{lado}").configure(text="Ecuación Canónica con RUT:")
             getattr(self, f"valor_label_{lado}").configure(text=rut)
@@ -160,9 +168,25 @@ class MainWindow(ctk.CTk):
         canvas.get_tk_widget().pack(fill="both", expand=True)
 
     def graficar(self):
-        fig, ax = graficar_elipse_2d(self.h, self.k, self.a, self.b)
-        self.mostrar_grafico(fig)
+        elipses = []
+        if self.parametros_izq:
+            elipses.append(self.parametros_izq)
+        if self.parametros_der:
+            elipses.append(self.parametros_der)
+
+        if elipses:
+            fig, ax = graficar_elipses_2d(elipses)
+            self.mostrar_grafico(fig)
+
 
     def graficar_3d(self):
-        fig, ax = graficar_elipse_3d(self.h, self.k, self.a, self.b)
-        self.mostrar_grafico(fig)
+        elipses = []
+        if self.parametros_izq:
+            elipses.append(self.parametros_izq)
+        if self.parametros_der:
+            elipses.append(self.parametros_der)
+
+        if elipses:
+            fig, ax = graficar_elipses_3d(elipses)
+            self.mostrar_grafico(fig)
+
