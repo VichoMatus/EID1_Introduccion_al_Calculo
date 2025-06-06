@@ -2,11 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import fsolve
 
-import numpy as np
-import matplotlib.pyplot as plt
-from scipy.optimize import fsolve
-
-def interseccion_elipses(elipse1, elipse2, tolerance=1e-5):
+def interseccion_elipses(elipse1, elipse2, tolerance=1e-4):
     """
     Calcula los puntos de intersección entre dos elipses dadas por sus parámetros.
     Elipses definidas como (h, k, a, b) donde (h, k) es el centro, y a, b son los semi-ejes.
@@ -64,7 +60,10 @@ def graficar_elipses_2d(lista_elipses, titulo="Trayectorias del Dron"):
         y = k + b * np.sin(theta)
         ax.plot(x, y, label=f"Elipse {i+1}")
         ax.plot(h, k, 'ro')  # Centro de la elipse
-    
+        
+        # Mostrar el centro de la elipse
+        ax.text(h + 0.5, k + 0.5, f"Centro Elipse {i+1} ({h}, {k})", color='red', fontsize=8)
+
     # Buscar y graficar puntos de intersección entre todas las elipses
     puntos_interseccion = []
     for i in range(len(lista_elipses)):
@@ -74,7 +73,11 @@ def graficar_elipses_2d(lista_elipses, titulo="Trayectorias del Dron"):
             intersecciones = interseccion_elipses(elipse1, elipse2)
             for interseccion in intersecciones:
                 puntos_interseccion.append(interseccion)
+                # Graficar las intersecciones
                 ax.plot(interseccion[0], interseccion[1], 'go')  # Puntos de intersección
+                # Mostrar las coordenadas de la intersección en el gráfico
+                ax.text(interseccion[0] + 0.3, interseccion[1] + 0.3, f'Intersección ({interseccion[0]:.2f}, {interseccion[1]:.2f})', 
+                        color='green', fontsize=8)  # Mostrar las coordenadas
     
     ax.set_aspect('equal', adjustable='box')
     ax.set_xlabel("x")
@@ -83,7 +86,6 @@ def graficar_elipses_2d(lista_elipses, titulo="Trayectorias del Dron"):
     ax.legend()
     ax.grid(True)
     return fig, ax
-
 
 
 def graficar_elipses_3d(lista_elipses, titulo="Trayectorias 3D del Dron"):
