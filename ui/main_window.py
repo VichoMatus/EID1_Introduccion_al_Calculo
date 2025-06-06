@@ -5,6 +5,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
 from graficos.graficador import graficar_elipses_2d, graficar_elipses_3d, hay_interseccion
 from logic.render_formulas import render_formula, render_formula_general
+import re
 
 class MainWindow(ctk.CTk):
     def __init__(self):
@@ -90,8 +91,21 @@ class MainWindow(ctk.CTk):
 
     def _procesar_rut(self, lado):
         rut_entry = getattr(self, f"rut_entry_{lado}")
-        rut = rut_entry.get()
-        rut_separado = separar_rut(rut)
+        rut = rut_entry.get().strip()
+
+        # Validación: solo dígitos, K/k, puntos y guiones permitidos
+        if not re.fullmatch(r'[0-9Kk\.\-]+', rut):
+            messagebox.showerror('Error', 'El RUT ingresado no es valido, porfavor ingreselo correctamente.')
+            return
+
+        # Limpiar puntos y guiones para el procesamiento
+        rut_limpio = rut.replace(".", "").replace("-", "")
+
+        if len(rut_limpio) < 8:
+            messagebox.showerror('Error', 'El RUT ingresado es demasiado corto.')
+            return
+
+        rut_separado = separar_rut(rut_limpio)
 
         if len(rut_separado) < 8:
             for nombre in [
@@ -104,60 +118,68 @@ class MainWindow(ctk.CTk):
             return
 
         ultimo = rut_separado[-1]
-        if ultimo.isdigit():
-            resultado = funcion_caso2(rut_separado) if int(ultimo) % 2 == 0 else funcion_caso1(rut_separado)
-            h, k, a, b = resultado["h"], resultado["k"], resultado["a"], resultado["b"]
+        try:
+            if ultimo.isdigit():
+                resultado = funcion_caso2(rut_separado) if int(ultimo) % 2 == 0 else funcion_caso1(rut_separado)
+                h, k, a, b = resultado["h"], resultado["k"], resultado["a"], resultado["b"]
 
-            # Validación: si a y b son iguales, mostrar aviso y salir
-            if a == b:
-                return messagebox.showerror('Error', 'Los valores de a y b son iguales, lo que indica que no es una elipse válida. Por favor, ingrese un RUT diferente.')
+                # Validación: si a o b son 0, mostrar error y salir
+                if a == 0 or b == 0:
+                    return messagebox.showerror('Error', 'Los valores de a o b no pueden ser cero. Ingrese un RUT diferente.')
 
-            orientacion = resultado["orientacion"]
-            canonica = render_formula(H=h, K=k, A=a, B=b)
-            general = render_formula_general(resultado["latex_general"])
+                # Validación: si a y b son iguales, mostrar aviso y salir
+                if a == b:
+                    return messagebox.showerror('Error', 'Los valores de a y b son iguales, lo que indica que no es una elipse válida. Por favor, ingrese un RUT diferente.')
 
-            self.h, self.k, self.a, self.b = h, k, a, b  # Para graficar
-            if lado == "izq":
-                self.parametros_izq = (h, k, a, b)
-            else:
-                self.parametros_der = (h, k, a, b)
+                orientacion = resultado["orientacion"]
+                canonica = render_formula(H=h, K=k, A=a, B=b)
+                general = render_formula_general(resultado["latex_general"])
+
+                self.h, self.k, self.a, self.b = h, k, a, b  # Para graficar
+                if lado == "izq":
+                    self.parametros_izq = (h, k, a, b)
+                else:
+                    self.parametros_der = (h, k, a, b)
 
 
-            getattr(self, f"titulo_label_{lado}").configure(text="Ecuación Canónica con RUT:")
-            getattr(self, f"valor_label_{lado}").configure(text=rut)
-            getattr(self, f"orientacion_label_{lado}").configure(text=f"Orientación:\n{orientacion}")
+                getattr(self, f"titulo_label_{lado}").configure(text="Ecuación Canónica con RUT:")
+                getattr(self, f"valor_label_{lado}").configure(text=rut)
+                getattr(self, f"orientacion_label_{lado}").configure(text=f"Orientación:\n{orientacion}")
 
-            getattr(self, f"canonica_titulo_{lado}").configure(text="Ecuación Canónica:")
-            getattr(self, f"formula_label_{lado}").configure(image=canonica)
+                getattr(self, f"canonica_titulo_{lado}").configure(text="Ecuación Canónica:")
+                getattr(self, f"formula_label_{lado}").configure(image=canonica)
 
-            getattr(self, f"general_titulo_{lado}").configure(text="Ecuación General:")
-            getattr(self, f"general_label_{lado}").configure(image=general, text="")
+                getattr(self, f"general_titulo_{lado}").configure(text="Ecuación General:")
+                getattr(self, f"general_label_{lado}").configure(image=general, text="")
 
-            setattr(self, f"foto_canonica_{lado}", canonica)
-            setattr(self, f"foto_general_{lado}", general)
+                setattr(self, f"foto_canonica_{lado}", canonica)
+                setattr(self, f"foto_general_{lado}", general)
 
-            # Mostrar explicación de valores h, k, a, b
-            getattr(self, f"valores_titulo_{lado}").configure(text="Valores Ecuación Canónica:")
+                # Mostrar explicación de valores h, k, a, b
+                getattr(self, f"valores_titulo_{lado}").configure(text="Valores Ecuación Canónica:")
 
-            explicacion = (
-                f"h = d1 = {rut_separado[0]}\n"
-                f"k = d2 = {rut_separado[1]}\n"
-            )
-
-            if int(ultimo) % 2 == 0:
-                # Caso 2
-                explicacion += (
-                    f"a = d6 + d7 = {rut_separado[5]} + {rut_separado[6]} = {a}\n"
-                    f"b = d8 + d3 = {rut_separado[7]} + {rut_separado[2]} = {b}"
-                )
-            else:
-                # Caso 1
-                explicacion += (
-                    f"a = d3 + d4 = {rut_separado[2]} + {rut_separado[3]} = {a}\n"
-                    f"b = d5 + d6 = {rut_separado[4]} + {rut_separado[5]} = {b}"
+                explicacion = (
+                    f"h = d1 = {rut_separado[0]}\n"
+                    f"k = d2 = {rut_separado[1]}\n"
                 )
 
-            getattr(self, f"debug_label_{lado}").configure(text=explicacion)
+                if int(ultimo) % 2 == 0:
+                    # Caso 2
+                    explicacion += (
+                        f"a = d6 + d7 = {rut_separado[5]} + {rut_separado[6]} = {a}\n"
+                        f"b = d8 + d3 = {rut_separado[7]} + {rut_separado[2]} = {b}"
+                    )
+                else:
+                    # Caso 1
+                    explicacion += (
+                        f"a = d3 + d4 = {rut_separado[2]} + {rut_separado[3]} = {a}\n"
+                        f"b = d5 + d6 = {rut_separado[4]} + {rut_separado[5]} = {b}"
+                    )
+
+                getattr(self, f"debug_label_{lado}").configure(text=explicacion)
+        except ZeroDivisionError:
+            messagebox.showerror('Error', 'Ocurrió una división por cero al calcular los parámetros. Verifique que los valores de a y b no sean cero.')
+            return
 
     def mostrar_grafico(self, fig):
         for widget in self.grafico_frame.winfo_children():

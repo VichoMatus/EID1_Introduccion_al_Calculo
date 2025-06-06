@@ -4,7 +4,7 @@ def separar_rut(rut: str):
     digitos = list(rut[:-1])  # Todos excepto el último carácter
     ultimo = rut[-1].upper()
 
-    if ultimo == "K":
+    if ultimo == "K" or ultimo == "k":
         digitos.append('0')
     else:
         digitos.append(ultimo)
