@@ -108,3 +108,17 @@ def graficar_elipses_3d(lista_elipses, titulo="Trayectorias 3D del Dron"):
     ax.legend()
     plt.tight_layout()
     return fig, ax
+
+
+def hay_interseccion(lista_elipses, tolerance=1e-4):
+    """
+    Retorna True si hay al menos un punto de intersección entre cualquier par de elipses en la lista.
+    """
+    if len(lista_elipses) < 2:
+        return False
+    for i in range(len(lista_elipses)):
+        for j in range(i + 1, len(lista_elipses)):
+            intersecciones = interseccion_elipses(lista_elipses[i], lista_elipses[j], tolerance)
+            if intersecciones:
+                return True
+    return False

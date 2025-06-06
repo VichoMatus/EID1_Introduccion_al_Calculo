@@ -3,7 +3,7 @@ from tkinter import messagebox
 from logic.calculos import separar_rut, funcion_caso1, funcion_caso2
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
-from graficos.graficador import graficar_elipses_2d, graficar_elipses_3d
+from graficos.graficador import graficar_elipses_2d, graficar_elipses_3d, hay_interseccion
 from logic.render_formulas import render_formula, render_formula_general
 
 class MainWindow(ctk.CTk):
@@ -174,10 +174,50 @@ class MainWindow(ctk.CTk):
         if self.parametros_der:
             elipses.append(self.parametros_der)
 
+        # Limpiar widgets previos
+        for widget in self.grafico_frame.winfo_children():
+            widget.destroy()
+
         if elipses:
             fig, ax = graficar_elipses_2d(elipses)
             self.mostrar_grafico(fig)
 
+            # Si hay intersección, mostrar botón de ajuste
+            if len(elipses) == 2 and hay_interseccion(elipses):
+                self._mostrar_boton_ajuste()
+
+    def _mostrar_boton_ajuste(self):
+        self.ajustar_btn = ctk.CTkButton(self.grafico_frame, text="Ajustar parámetros", command=self._mostrar_campos_ajuste)
+        self.ajustar_btn.pack(pady=10)
+
+    def _mostrar_campos_ajuste(self):
+        # Campos para nuevas coordenadas del centro de la elipse derecha
+        self.nuevo_h_label = ctk.CTkLabel(self.grafico_frame, text="Nuevo h (centro elipse naranja):")
+        self.nuevo_h_label.pack()
+        self.nuevo_h_entry = ctk.CTkEntry(self.grafico_frame)
+        self.nuevo_h_entry.pack()
+
+        self.nuevo_k_label = ctk.CTkLabel(self.grafico_frame, text="Nuevo k (centro elipse naranja):")
+        self.nuevo_k_label.pack()
+        self.nuevo_k_entry = ctk.CTkEntry(self.grafico_frame)
+        self.nuevo_k_entry.pack()
+
+        self.guardar_btn = ctk.CTkButton(self.grafico_frame, text="Guardar", command=self._guardar_nuevos_parametros)
+        self.guardar_btn.pack(pady=5)
+
+    def _guardar_nuevos_parametros(self):
+        try:
+            nuevo_h = float(self.nuevo_h_entry.get())
+            nuevo_k = float(self.nuevo_k_entry.get())
+        except ValueError:
+            messagebox.showerror("Error", "Ingrese valores numéricos válidos.")
+            return
+
+        # Actualizar solo el centro de la elipse derecha
+        if self.parametros_der:
+            h, k, a, b = self.parametros_der
+            self.parametros_der = (nuevo_h, nuevo_k, a, b)
+            self.graficar()  # Refrescar gráfico
 
     def graficar_3d(self):
         elipses = []
