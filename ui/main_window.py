@@ -93,6 +93,7 @@ class MainWindow(ctk.CTk):
         rut = rut_entry.get()
         rut_separado = separar_rut(rut)
 
+        #valida que el rut tenga suficientes dígitos
         if len(rut_separado) < 8:
             for nombre in [
                 "titulo", "valor", "formula", "orientacion", "general",
@@ -103,6 +104,7 @@ class MainWindow(ctk.CTk):
                     label.configure(text="", image=None)
             return
 
+        # determina función a usar según el último dígito del RUT
         ultimo = rut_separado[-1]
         if ultimo.isdigit():
             resultado = funcion_caso2(rut_separado) if int(ultimo) % 2 == 0 else funcion_caso1(rut_separado)
@@ -122,7 +124,7 @@ class MainWindow(ctk.CTk):
             else:
                 self.parametros_der = (h, k, a, b)
 
-
+            # Actualizar interfaz
             getattr(self, f"titulo_label_{lado}").configure(text="Ecuación Canónica con RUT:")
             getattr(self, f"valor_label_{lado}").configure(text=rut)
             getattr(self, f"orientacion_label_{lado}").configure(text=f"Orientación:\n{orientacion}")

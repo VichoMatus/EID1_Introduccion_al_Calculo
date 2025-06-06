@@ -11,6 +11,7 @@ def separar_rut(rut: str):
 
     return digitos
 
+#caso digito verificador impar
 def funcion_caso1(digitos):
     h = int(digitos[0])
     k = int(digitos[1])
@@ -48,6 +49,7 @@ def funcion_caso1(digitos):
         "latex_general": latex_general
     }
 
+#caso digito verificador par
 def funcion_caso2(digitos):
     h = int(digitos[0])
     k = int(digitos[1])

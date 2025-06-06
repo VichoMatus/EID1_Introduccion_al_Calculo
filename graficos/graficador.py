@@ -2,15 +2,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import fsolve
 
+ #calcula puntos de intersección entre dos elipses
 def interseccion_elipses(elipse1, elipse2, tolerance=1e-4):
-    """
-    Calcula los puntos de intersección entre dos elipses dadas por sus parámetros.
-    Elipses definidas como (h, k, a, b) donde (h, k) es el centro, y a, b son los semi-ejes.
-    """
+   
     h1, k1, a1, b1 = elipse1
     h2, k2, a2, b2 = elipse2
 
-    # Definimos las ecuaciones paramétricas para cada elipse
+    # Definimos las ecuaciones parametricas para cada elipse
     def ecuaciones(t):
         x1 = h1 + a1 * np.cos(t[0])
         y1 = k1 + b1 * np.sin(t[0])
@@ -20,12 +18,12 @@ def interseccion_elipses(elipse1, elipse2, tolerance=1e-4):
         # Queremos que las coordenadas coincidan para encontrar la intersección
         return [x1 - x2, y1 - y2]
     
-    # Usamos fsolve para encontrar las soluciones numéricas con más parámetros de control
+    # Usamos fsolve para encontrar las soluciones numericas con mas parametros de control
     t_iniciales = [
         [0, 0], [np.pi / 4, np.pi / 4], [np.pi / 2, np.pi / 2], 
         [np.pi, np.pi], [3*np.pi/2, 3*np.pi/2], [np.pi/3, np.pi/3],
         [np.pi/6, np.pi/6], [5*np.pi/6, 5*np.pi/6], [2*np.pi, 2*np.pi],
-        [-np.pi/4, -np.pi/4], [np.pi/5, np.pi/5]  # Más condiciones iniciales
+        [-np.pi/4, -np.pi/4], [np.pi/5, np.pi/5]  # Mas condiciones iniciales
     ]
     
     intersecciones = []
